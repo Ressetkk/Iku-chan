@@ -9,56 +9,65 @@ import (
 )
 
 const (
-	NHentaiApiUrl = "https://nhentai.net"
+	NHentaiApiUrl       = "https://nhentai.net"
 	NHentaiThumbnailUrl = "https://t.nhentai.net"
-	NHentaiImagesUrl = "https://i.nhentai.net"
+	NHentaiImagesUrl    = "https://i.nhentai.net"
 )
 
 type Image struct {
-	Type string `json:"t"`
-	Width int `json:"w"`
-	Height int `json:"h"`
+	Type   string `json:"t"`
+	Width  int    `json:"w"`
+	Height int    `json:"h"`
 }
 
 type Images struct {
-	Pages []Image `json:"pages"`
-	Cover Image `json:"cover"`
-	Thumbnail Image `json:"thumbnail"`
+	Pages     []Image `json:"pages"`
+	Cover     Image   `json:"cover"`
+	Thumbnail Image   `json:"thumbnail"`
+}
+
+type Tag struct {
+	ID    int    `json:"id"`
+	Type  string `json:"string"`
+	Name  string `json:"name"`
+	URL   string `json:"url"`
+	Count int    `json:"count"`
 }
 
 type Result struct {
-	ID int `json:"id"`
-	MediaID string `json:"media_id"`
-	Title map[string]string `json:"title"`
-	Scanlator string `json:"scanlator,omitempty"`
-	UploadTimestamp int `json:"uploaded"`
-	NumOfPages int `json:"num_pages"`
-	NumOfFavorites int `json:"num_favorites"`
-	Images Images `json:"images"`
+	ID              interface{}       `json:"id"` //nhentai API is so poorly written and results sometimes have this field as string
+	MediaID         string            `json:"media_id"`
+	Title           map[string]string `json:"title"`
+	Scanlator       string            `json:"scanlator,omitempty"`
+	UploadTimestamp int               `json:"uploaded"`
+	NumOfPages      int               `json:"num_pages"`
+	NumOfFavorites  int               `json:"num_favorites"`
+	Images          Images            `json:"images"`
+	Tags            []Tag             `json:"tags"`
 }
 
 type SearchResult struct {
-	Results []Result `json:"result"`
-	NumOfPages int `json:"num_pages,omitempty"`
-	NumPerPage int `json:"per_page,omitempty"`
+	Results    []Result `json:"result"`
+	NumOfPages int      `json:"num_pages,omitempty"`
+	NumPerPage int      `json:"per_page,omitempty"`
 }
 
 // TODO (@Ressetkk): add logging
 type Client struct {
-	url string
+	url    string
 	client *http.Client
 }
 
 type Options struct {
-	timeout time.Duration
-	Url string
+	Timeout time.Duration
+	Url     string
 }
 
 func New(o Options) *Client {
-	c := &http.Client{Timeout: o.timeout}
+	c := &http.Client{Timeout: o.Timeout}
 	return &Client{
 		client: c,
-		url: o.Url,
+		url:    o.Url,
 	}
 }
 
@@ -68,13 +77,13 @@ func (c Client) Get(id int) (*Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("nhentai api fetch error: %w", err)
 	}
-	var response Result
+	response := new(Result)
 	err = json.NewDecoder(r.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("response decoding error: %w", err)
 	}
 	defer r.Body.Close()
-	return &response, nil
+	return response, nil
 }
 
 func (c Client) Search(query, sort string, page int) (*SearchResult, error) {
@@ -91,13 +100,13 @@ func (c Client) Search(query, sort string, page int) (*SearchResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("nhentai api fetch error: %w", err)
 	}
-	var response SearchResult
+	response := new(SearchResult)
 	err = json.NewDecoder(r.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("response decoding error: %w", err)
 	}
 	defer r.Body.Close()
-	return &response, nil
+	return response, nil
 }
 
 // TODO (@Ressetkk): Implement random

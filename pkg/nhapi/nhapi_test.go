@@ -7,23 +7,21 @@ import (
 )
 
 func TestClient_Get(t *testing.T) {
-	client := New(Options{timeout: time.Minute, Url: NHentaiApiUrl})
-	res, err := client.Get(312479)
+	client := New(Options{Timeout: time.Minute, Url: NHentaiApiUrl})
+	_, err := client.Get(323888)
 	if err != nil {
 		fmt.Printf("Test failed prematurely: %v", err)
 		t.Fail()
 	}
-	fmt.Println(res)
 }
 
 func TestClient_Search(t *testing.T) {
-	client := New(Options{timeout: time.Minute, Url: NHentaiApiUrl})
-	res, err := client.Search("jojo", "", 1)
+	client := New(Options{Timeout: time.Minute, Url: NHentaiApiUrl})
+	_, err := client.Search("jojo", "", 1)
 	if err != nil {
 		fmt.Printf("Test failed prematurely: %v", err)
 		t.Fail()
 	}
-	fmt.Println(res)
 }
 
 func TestResult_GetThumbnailUrl(t *testing.T) {
