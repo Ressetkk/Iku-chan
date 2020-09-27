@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/Ressetkk/Iku-chan/cmd/test"
-	"github.com/Ressetkk/Iku-chan/pkg/router"
+	"github.com/Ressetkk/Iku-chan/pkg/dux"
 	"github.com/bwmarrin/discordgo"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -23,19 +23,16 @@ func main() {
 	if err := session.Open(); err != nil {
 		logrus.WithError(err).Fatal("Could not open Discord Bot session")
 	}
+
 	logrus.Info("Discord session initialized. Initializing commands.")
 
-	rt := router.Command{
-		Use:     "iku",
-		Aliases: []string{"Iku", "bot"},
-	}
+	r := &dux.Command{Name: "iku", Run: func(ctx *dux.Context, args []string) {
+		ctx.SendTextf("```Hello World from new framework!. I got args: %v\n\nAvailable routes: \n%s```", args, ctx.Route.GetRoutes())
+	}}
+	r.AddCommand(test.HelloWorldCmd())
 
-	rt.AddCommands(test.HelloWorldCmd(), test.PingCmd())
-	rt.AddMiddleware(func(m router.Payload) router.Payload {
-		m.SendText("root middleware")
-		return m
-	})
-	session.AddHandler(rt.Handler(router.Options{AllowMentions: true, IgnoreCases: true}))
+	opts := dux.Options{AllowMentions: true}
+	session.AddHandler(r.Handler(opts))
 
 	defer func() {
 		sig := make(chan os.Signal, 1)

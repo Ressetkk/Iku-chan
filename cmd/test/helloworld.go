@@ -1,27 +1,30 @@
 package test
 
-import "github.com/Ressetkk/Iku-chan/pkg/router"
+import (
+	"github.com/Ressetkk/Iku-chan/pkg/dux"
+)
 
-func HelloWorldCmd() *router.Command {
-	c := &router.Command{
-		Use:         "helloworld",
-		Aliases:     []string{"hello", "world"},
+func HelloWorldCmd() *dux.Command {
+	c := &dux.Command{
+		Name:        "helloworld",
 		Description: "prints hello world to the world!",
 		Short:       "print hello world",
-		Example:     "helloworld",
-		Run: func(h router.Payload) {
-			h.SendText("Za warudo!")
+		Run: func(ctx *dux.Context, args []string) {
+			ctx.SendText("aaaaaa")
 		},
 	}
-	c.AddCommands(&router.Command{
-		Use: "asd",
-		Run: func(h router.Payload) {
-			h.SendText("P2")
+	c.AddCommand(&dux.Command{
+		Name: "asd",
+		Run: func(ctx *dux.Context, args []string) {
+			ctx.SendText("hentai")
 		},
 	})
-	c.AddMiddleware(func(m router.Payload) router.Payload {
-		m.SendText("helloworld middleware")
-		return m
+	c.AddMiddleware(func(ctx *dux.Context) *dux.Context {
+		if !ctx.Channel.NSFW {
+			ctx.SendText("You can only use this command on NSFW channel!")
+			return nil
+		}
+		return ctx
 	})
 	return c
 }
