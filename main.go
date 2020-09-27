@@ -26,9 +26,7 @@ func main() {
 
 	logrus.Info("Discord session initialized. Initializing commands.")
 
-	r := &dux.Command{Name: "iku", Run: func(ctx *dux.Context, args []string) {
-		ctx.SendTextf("```Hello World from new framework!. I got args: %v\n\nAvailable routes: \n%s```", args, ctx.Route.GetRoutes())
-	}}
+	r := &dux.Command{Name: "iku"}
 	r.AddCommand(test.HelloWorldCmd())
 
 	opts := dux.Options{AllowMentions: true}

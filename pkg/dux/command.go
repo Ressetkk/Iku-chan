@@ -2,9 +2,20 @@ package dux
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"strings"
+	"text/template"
 )
+
+const defaultUsageTmpl = `{{ .Name }}{{ if .Description }} - {{ .Description }}{{ end }}
+{{ if .Example }}
+Example: {{ .Example }}
+
+{{ end }}
+{{- if .HasSubcommands }}
+Available commands:
+{{ .GetCommands }}
+{{- end }}
+Type "{{ .Root.Name }} help [command]" to show help about provided command.`
 
 type Commands map[string]*Command
 
@@ -13,7 +24,7 @@ func (rc Commands) String() string {
 	// TODO sorting
 	var res string
 	for k, v := range rc {
-		res += fmt.Sprintf("%s	%s\n", k, v.Short)
+		res += fmt.Sprintf("%s - %s\n", k, v.Short)
 	}
 	return res
 }
@@ -23,22 +34,21 @@ type Command struct {
 	Run         func(ctx *Context, args []string)
 	Description string
 	Short       string
+	Example     string
+	UsageTmpl   string
 
 	commands    Commands
 	parent      *Command
-	helpFunc    func(ctx *Context)
 	middlewares []middleware
+
+	helpFunc    func(ctx *Context, args []string)
+	usageString string
 }
 
-type Options struct {
-	Aliases       []string
-	AllowMentions bool
-}
-
-func (c *Command) GetRoutes() Commands {
+func (c *Command) GetCommands() Commands {
 	return c.commands
 }
-func (c *Command) GetRoute(name string) (*Command, bool) {
+func (c *Command) GetCommand(name string) (*Command, bool) {
 	if found, ok := c.commands[name]; ok {
 		return found, true
 	}
@@ -49,8 +59,13 @@ func (c *Command) AddCommand(cmd *Command) {
 	if c.commands == nil {
 		c.commands = make(map[string]*Command)
 	}
+	if c.Name == "" {
+		// TODO fatal
+	}
 	cmd.parent = c
 	c.commands[cmd.Name] = cmd
+
+	cmd.initHelpFunc()
 }
 
 func (c *Command) AddCommands(cmds ...*Command) {
@@ -60,28 +75,64 @@ func (c *Command) AddCommands(cmds ...*Command) {
 }
 
 func (c *Command) Execute(ctx *Context, args []string) {
-	rt := c
+	cmd := c
+
 	if len(args) != 0 {
-		rt, args = c.DeepFind(args)
+		cmd, args = c.DeepFind(args)
 	}
 
-	if rt.Run != nil {
-		ctx.Route = rt
-		for _, mw := range rt.buildMiddlewareChain() {
+	if cmd.Run != nil {
+		ctx.Route = cmd
+		// this might slow down the response from bot if we have a lot middleware added.
+		// consider having static middleware list for each command
+		for _, mw := range cmd.buildMiddlewareChain() {
 			ctx = mw.Middleware(ctx)
 			if ctx == nil {
+				// we failed in one of the middlewares
 				return
 			}
 		}
-		rt.Run(ctx, args)
+		cmd.Run(ctx, args)
+	} else if cmd.helpFunc != nil {
+		cmd.helpFunc(ctx, args)
 	}
+}
+
+func (c *Command) initHelpFunc() {
+	if c.helpFunc == nil {
+		c.helpFunc = func(ctx *Context, args []string) {
+			if len(args) > 0 {
+				name := args[0]
+				cmd, ok := c.GetCommand(name)
+				if ok {
+					ctx.SendText("```\n" + cmd.usageString + "```")
+					return
+				}
+				ctx.SendTextf("```\nCommand not found \"%s\"\n\n%s```", name, c.usageString)
+				return
+			}
+			ctx.SendText("```\n" + c.usageString + "```")
+		}
+	}
+}
+
+func (c *Command) Usage() string {
+	sb := &strings.Builder{}
+	t := template.New("top")
+	if c.UsageTmpl == "" {
+		t, _ = t.Parse(defaultUsageTmpl)
+	} else {
+		t, _ = t.Parse(c.UsageTmpl)
+	}
+	t.Execute(sb, c)
+	return sb.String()
 }
 
 func (c *Command) DeepFind(args []string) (*Command, []string) {
 	rt := c
 	for len(args) > 0 {
 		name := args[0]
-		foundRt, ok := rt.GetRoute(name)
+		foundRt, ok := rt.GetCommand(name)
 		if !ok {
 			return rt, args
 		}
@@ -91,30 +142,15 @@ func (c *Command) DeepFind(args []string) (*Command, []string) {
 	return rt, args
 }
 
-func (c *Command) Handler(o Options) func(s *discordgo.Session, m *discordgo.MessageCreate) {
-	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		prefix, args := getPrefixAndArgs(m.Content)
-	check:
-		switch {
-		case m.Author.ID == s.State.User.ID:
-			return
-		case o.AllowMentions && "<@!"+s.State.User.ID+">" == prefix:
-			break
-		case prefix != c.Name:
-			for _, alias := range o.Aliases {
-				if alias == prefix {
-					break check
-				}
-			}
-			return
-		}
+func (c Command) HasSubcommands() bool {
+	return len(c.commands) > 0
+}
 
-		ctx, err := NewContext(s, m)
-		if err != nil {
-			return
-		}
-		c.Execute(ctx, args)
+func (c *Command) Root() *Command {
+	if c.parent != nil {
+		return c.parent.Root()
 	}
+	return c
 }
 
 func getPrefixAndArgs(m string) (string, []string) {

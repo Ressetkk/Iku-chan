@@ -19,8 +19,8 @@ func TestRoute_GetRoute(t *testing.T) {
 	wanted := &Command{Name: "addedRoute"}
 	rt.AddCommand(wanted)
 
-	t.Run("GetRoute returns desired route", func(t *testing.T) {
-		got, ok := rt.GetRoute("addedRoute")
+	t.Run("GetCommand returns desired route", func(t *testing.T) {
+		got, ok := rt.GetCommand("addedRoute")
 		if !ok {
 			fmt.Printf("could not find route addedRoute\n")
 			t.Fail()
@@ -30,8 +30,8 @@ func TestRoute_GetRoute(t *testing.T) {
 			t.Fail()
 		}
 	})
-	t.Run("GetRoute returns false when route was not found", func(t *testing.T) {
-		got, ok := rt.GetRoute("notFound")
+	t.Run("GetCommand returns false when route was not found", func(t *testing.T) {
+		got, ok := rt.GetCommand("notFound")
 		if ok {
 			fmt.Printf("route was found: %v\n", got)
 			t.Fail()
