@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Ressetkk/Iku-chan/cmd/nhentai"
 	"github.com/Ressetkk/Iku-chan/pkg/dux"
 	"github.com/bwmarrin/discordgo"
 	"github.com/sirupsen/logrus"
@@ -30,6 +31,8 @@ func main() {
 		Description: `The bot for most perverted and thirsty degenerates.
 Come and use me, senpai~`,
 	}
+
+	r.AddCommands(nhentai.GetCmd(), nhentai.SearchCmd())
 
 	opts := dux.Options{AllowMentions: true}
 	session.AddHandler(r.Handler(opts))

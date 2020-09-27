@@ -1,22 +1,18 @@
 package nhentai
 
-//import (
-//	"github.com/Lukaesebrot/dgc"
-//	"github.com/Ressetkk/Iku-chan/pkg/nhapi"
-//	"time"
-//)
-//
-//func AddGetCmd() *dgc.Command {
-//	return &dgc.Command{
-//		Name:        "get",
-//		Description: "Use sacred numbers to get the sauce",
-//		Usage:       "get [ARGUMENTS]",
-//		Example:     "get 177013",
-//		Handler:     getHandler,
-//	}
-//}
-//
-//func getHandler(ctx *dgc.Ctx) {
-//	_ = nhapi.New(nhapi.Options{Url: nhapi.NHentaiApiUrl, Timeout: time.Minute * 3})
-//	ctx.RespondText("not yet impelemted...")
-//}
+import (
+	"github.com/Ressetkk/Iku-chan/pkg/dux"
+)
+
+func GetCmd() *dux.Command {
+	return &dux.Command{
+		Name:  "get",
+		Short: "Use sacred numbers to get the sauce",
+		Description: `Use sacred number to get the most spicy sauce out there.
+Don't be shy, just type the six-digit number and have some fun!`,
+		Example: "get 177013",
+		Run: func(ctx *dux.Context, args []string) {
+			ctx.SendTextf("Not yet implemented... args %s", args)
+		},
+	}
+}

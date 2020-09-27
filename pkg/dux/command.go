@@ -9,7 +9,6 @@ import (
 const defaultUsageTmpl = `{{ .Name }}{{ if .Description }} - {{ .Description }}{{ end }}
 {{ if .Example }}
 Example: {{ .Example }}
-
 {{ end }}
 {{- if .HasSubcommands }}
 Available commands:
