@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/Ressetkk/Iku-chan/cmd/test"
 	"github.com/Ressetkk/Iku-chan/pkg/dux"
 	"github.com/bwmarrin/discordgo"
 	"github.com/sirupsen/logrus"
@@ -27,7 +26,6 @@ func main() {
 	logrus.Info("Discord session initialized. Initializing commands.")
 
 	r := &dux.Command{Name: "iku"}
-	r.AddCommand(test.HelloWorldCmd())
 
 	opts := dux.Options{AllowMentions: true}
 	session.AddHandler(r.Handler(opts))

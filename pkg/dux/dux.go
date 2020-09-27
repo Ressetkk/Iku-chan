@@ -71,9 +71,10 @@ The command accepts the path to a command starting from subcommand of root.
 		prefix, args := getPrefixAndArgs(m.Content)
 	check:
 		switch {
-		case m.Author.ID == s.State.User.ID,
-			!o.AllowMentions && "<@!"+s.State.User.ID+">" != prefix:
+		case m.Author.ID == s.State.User.ID:
 			return
+		case o.AllowMentions && "<@!"+s.State.User.ID+">" == prefix:
+			break
 		case prefix != c.Name:
 			for _, alias := range o.Aliases {
 				if alias == prefix {
