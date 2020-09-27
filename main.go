@@ -25,7 +25,11 @@ func main() {
 
 	logrus.Info("Discord session initialized. Initializing commands.")
 
-	r := &dux.Command{Name: "iku"}
+	r := &dux.Command{
+		Name: "iku",
+		Description: `The bot for most perverted and thirsty degenerates.
+Come and use me, senpai~`,
+	}
 
 	opts := dux.Options{AllowMentions: true}
 	session.AddHandler(r.Handler(opts))
