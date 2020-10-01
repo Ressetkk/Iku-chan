@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -16,18 +18,21 @@ const (
 
 type URL string
 
+// Images struct stores information about one image in the Result
 type Image struct {
 	Type   string `json:"t"`
 	Width  int    `json:"w"`
 	Height int    `json:"h"`
 }
 
+// Images struct stores information about images in the Result
 type Images struct {
 	Pages     []Image `json:"pages"`
 	Cover     Image   `json:"cover"`
 	Thumbnail Image   `json:"thumbnail"`
 }
 
+// Tag struct represents one of Result tags
 type Tag struct {
 	ID    int    `json:"id"`
 	Type  string `json:"type"`
@@ -36,6 +41,7 @@ type Tag struct {
 	Count int    `json:"count"`
 }
 
+// Result struct describes one result from API
 type Result struct {
 	ID              interface{}       `json:"id"` //nhentai API is so poorly written and results sometimes have this field as string
 	MediaID         string            `json:"media_id"`
@@ -48,6 +54,7 @@ type Result struct {
 	Tags            []Tag             `json:"tags"`
 }
 
+// SearchResult is a struct that describes complete search result.
 type SearchResult struct {
 	Results    []Result `json:"result"`
 	NumOfPages int      `json:"num_pages,omitempty"`
@@ -55,16 +62,19 @@ type SearchResult struct {
 }
 
 // TODO (@Ressetkk): add logging
+// Client struct defines NHentai API Client
 type Client struct {
 	url    string
 	client *http.Client
 }
 
+// Options struct define Client options
 type Options struct {
 	Timeout time.Duration
 	Url     string
 }
 
+// New returns new NHentai Client
 func New(o Options) *Client {
 	c := &http.Client{Timeout: o.Timeout}
 	return &Client{
@@ -73,6 +83,7 @@ func New(o Options) *Client {
 	}
 }
 
+// Get returns Result from NHentai.
 func (c Client) Get(id int) (*Result, error) {
 	uri := fmt.Sprintf("%v/api/gallery/%v", c.url, id)
 	r, err := c.client.Get(uri)
@@ -88,6 +99,8 @@ func (c Client) Get(id int) (*Result, error) {
 	return response, nil
 }
 
+// Search returns list of Result with the search query results.
+// Supports pagination.
 func (c Client) Search(query, sort string, page int) (*SearchResult, error) {
 	if sort == "" {
 		sort = "date"
@@ -111,9 +124,22 @@ func (c Client) Search(query, sort string, page int) (*SearchResult, error) {
 	return response, nil
 }
 
-// TODO (@Ressetkk): Implement random
-func (c Client) Random() int {
-	return 0
+// Random returns random id from NHentai.
+func (c Client) Random() (int, error) {
+	resp, err := c.client.Head(c.url + "/random")
+	if err != nil {
+		return -1, fmt.Errorf("nhentai api fetch error: %w", err)
+	}
+	r, err := regexp.Compile("(/)|(g)")
+	if err != nil {
+		return -1, err
+	}
+	strId := r.ReplaceAllString(resp.Request.URL.Path, "")
+	id, err := strconv.Atoi(strId)
+	if err != nil {
+		return -1, err
+	}
+	return id, nil
 }
 
 func (r Result) GetThumbnailUrl() string {

@@ -33,3 +33,13 @@ func TestResult_GetThumbnailUrl(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestClient_Random(t *testing.T) {
+	client := New(Options{Timeout: time.Minute, Url: NHentaiApiUrl})
+	id, err := client.Random()
+	if err != nil {
+		fmt.Println(err)
+		t.FailNow()
+	}
+	fmt.Println(id)
+}

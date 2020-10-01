@@ -63,8 +63,7 @@ func main() {
 Come and use me, senpai~`,
 	}
 
-	r.AddCommands(nhentai.GetCmd(), nhentai.SearchCmd())
-
+	r.AddCommands(nhentai.GetCmd(), nhentai.SearchCmd(), nhentai.RandomCmd())
 	handler := dux.Handler{
 		AllowMentions: true,
 		Root:          r,
