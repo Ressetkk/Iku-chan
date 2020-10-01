@@ -32,22 +32,23 @@ func main() {
 		}}
 
 	// add subcommand
-	subc := &dux.Command{
+	subCommand := &dux.Command{
 		Name: "funky",
 		Run: func(ctx *dux.Context, args []string) {
 			ctx.SendText("Now we're funky!")
 		},
 	}
-	r.AddCommand(subc)
+	r.AddCommand(subCommand)
 
 	// Initialize handler options
-	opts := dux.Options{
+	handler := dux.Handler{
 		AllowMentions: true,
 		Aliases:       []string{"world", "helloWorld"},
+		Root:          r,
 	}
 
-	// add DG0 handler for a root command with options
-	session.AddHandler(r.Handler(opts))
+	// set DG0 handler
+	session.AddHandler(handler.Set())
 
 	defer func() {
 		sig := make(chan os.Signal, 1)

@@ -14,6 +14,8 @@ const (
 	NHentaiImagesUrl    = "https://i.nhentai.net"
 )
 
+type URL string
+
 type Image struct {
 	Type   string `json:"t"`
 	Width  int    `json:"w"`
@@ -28,9 +30,9 @@ type Images struct {
 
 type Tag struct {
 	ID    int    `json:"id"`
-	Type  string `json:"string"`
+	Type  string `json:"type"`
 	Name  string `json:"name"`
-	URL   string `json:"url"`
+	URL   URL    `json:"url"`
 	Count int    `json:"count"`
 }
 
@@ -39,7 +41,7 @@ type Result struct {
 	MediaID         string            `json:"media_id"`
 	Title           map[string]string `json:"title"`
 	Scanlator       string            `json:"scanlator,omitempty"`
-	UploadTimestamp int               `json:"uploaded"`
+	UploadTimestamp int64             `json:"upload_date"`
 	NumOfPages      int               `json:"num_pages"`
 	NumOfFavorites  int               `json:"num_favorites"`
 	Images          Images            `json:"images"`
@@ -116,4 +118,8 @@ func (c Client) Random() int {
 
 func (r Result) GetThumbnailUrl() string {
 	return fmt.Sprintf("%v/galleries/%v/cover.jpg", NHentaiThumbnailUrl, r.MediaID)
+}
+
+func (u URL) Full() string {
+	return NHentaiApiUrl + string(u)
 }

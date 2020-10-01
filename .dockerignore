@@ -1,0 +1,7 @@
+.idea
+Dockerfile
+.DS_Store
+LICENSE
+*.md
+**_test.go
+**.exe

@@ -2,6 +2,7 @@ package dux
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"strings"
 	"text/template"
 )
@@ -40,6 +41,7 @@ type Command struct {
 	parent      *Command
 	middlewares []middleware
 
+	logger      *logrus.Entry
 	helpFunc    func(ctx *Context, args []string)
 	usageString string
 }
@@ -59,12 +61,12 @@ func (c *Command) AddCommand(cmd *Command) {
 		c.commands = make(map[string]*Command)
 	}
 	if c.Name == "" {
-		// TODO fatal
+		logrus.WithField("cmd", cmd).Panic("Command name is empty!")
 	}
 	cmd.parent = c
 	c.commands[cmd.Name] = cmd
-
 	cmd.initHelpFunc()
+	cmd.logger = logrus.WithField("command", cmd.Name)
 }
 
 func (c *Command) AddCommands(cmds ...*Command) {
@@ -75,22 +77,25 @@ func (c *Command) AddCommands(cmds ...*Command) {
 
 func (c *Command) Execute(ctx *Context, args []string) {
 	cmd := c
-
+	ctx.Logger = c.logger // use command's log entry to determine which command ran
 	if len(args) != 0 {
 		cmd, args = c.DeepFind(args)
 	}
-
+	c.logger.Debug(cmd)
 	if cmd.Run != nil {
 		ctx.Route = cmd
 		// this might slow down the response from bot if we have a lot middleware added.
 		// consider having static middleware list for each command
 		for _, mw := range cmd.buildMiddlewareChain() {
+			c.logger.Trace(mw)
 			ctx = mw.Middleware(ctx)
 			if ctx == nil {
 				// we failed in one of the middlewares
 				return
 			}
 		}
+		c.logger.Trace(ctx, args)
+		c.logger.Debug("exec: ", cmd)
 		cmd.Run(ctx, args)
 	} else if cmd.helpFunc != nil {
 		cmd.helpFunc(ctx, args)

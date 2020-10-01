@@ -3,6 +3,7 @@ package dux
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -14,6 +15,7 @@ type Context struct {
 	Message *discordgo.Message
 	Route   *Command
 
+	Logger *logrus.Entry
 	sync.Mutex
 	keys map[string]interface{}
 }
