@@ -103,7 +103,7 @@ func (c Client) Get(id int) (*Result, error) {
 // Supports pagination.
 func (c Client) Search(query, sort string, page int) (*SearchResult, error) {
 	if sort == "" {
-		sort = "date"
+		sort = "popular"
 	}
 	if page == 0 {
 		page = 1
@@ -142,10 +142,21 @@ func (c Client) Random() (int, error) {
 	return id, nil
 }
 
-func (r Result) GetThumbnailUrl() string {
-	return fmt.Sprintf("%v/galleries/%v/cover.jpg", NHentaiThumbnailUrl, r.MediaID)
+func (r Result) GetCoverThumbnail() string {
+	return fmt.Sprintf("%v/galleries/%v/cover.%v", NHentaiThumbnailUrl, r.MediaID, r.Images.Cover.FileType())
 }
 
 func (u URL) Full() string {
 	return NHentaiApiUrl + string(u)
+}
+
+func (i Image) FileType() string {
+	switch i.Type {
+	case "j":
+		return "jpg"
+	case "p":
+		return "png"
+	default:
+		return "jpg"
+	}
 }

@@ -27,7 +27,7 @@ func TestClient_Search(t *testing.T) {
 func TestResult_GetThumbnailUrl(t *testing.T) {
 	testResult := Result{MediaID: "1234"}
 	wantedUrl := "https://t.nhentai.net/galleries/" + testResult.MediaID + "/cover.jpg"
-	gotUrl := testResult.GetThumbnailUrl()
+	gotUrl := testResult.GetCoverThumbnail()
 	if wantedUrl != gotUrl {
 		fmt.Printf("Wrong image URL\nGot: %v\nWanted:%v\n", gotUrl, wantedUrl)
 		t.Fail()
