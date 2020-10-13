@@ -40,21 +40,18 @@ func (c *Context) SendText(text string) (err error) {
 }
 
 // SendTextf sends text message to the Discord API with custom formatting.
-func (c *Context) SendTextf(format string, elements ...interface{}) (err error) {
-	_, err = c.Session.ChannelMessageSend(c.Event.ChannelID, fmt.Sprintf(format, elements...))
-	return
+func (c *Context) SendTextf(format string, elements ...interface{}) (*discordgo.Message, error) {
+	return c.Session.ChannelMessageSend(c.Event.ChannelID, fmt.Sprintf(format, elements...))
 }
 
 // SendEmbed sends discordgo.MessageEmbed struct to the Discord API.
-func (c *Context) SendEmbed(embed *discordgo.MessageEmbed) (err error) {
-	_, err = c.Session.ChannelMessageSendEmbed(c.Event.ChannelID, embed)
-	return
+func (c *Context) SendEmbed(embed *discordgo.MessageEmbed) (*discordgo.Message, error) {
+	return c.Session.ChannelMessageSendEmbed(c.Event.ChannelID, embed)
 }
 
 // Send sends complete discordgo.MessageSend struct to the Discord API.
-func (c *Context) Send(msg *discordgo.MessageSend) (err error) {
-	_, err = c.Session.ChannelMessageSendComplex(c.Event.ChannelID, msg)
-	return
+func (c *Context) Send(msg *discordgo.MessageSend) (*discordgo.Message, error) {
+	return c.Session.ChannelMessageSendComplex(c.Event.ChannelID, msg)
 }
 
 func NewContext(s *discordgo.Session, m *discordgo.MessageCreate) (*Context, error) {

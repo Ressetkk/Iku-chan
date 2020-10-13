@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/Ressetkk/Iku-chan/cmd/nhentai"
+	"github.com/Ressetkk/Iku-chan/pkg/activity"
 	"github.com/Ressetkk/Iku-chan/pkg/dux"
 	"github.com/bwmarrin/discordgo"
 	"github.com/sirupsen/logrus"
@@ -12,7 +13,7 @@ import (
 )
 
 var (
-	logLevel = flag.String("logLevel", "warn", "Set log level.")
+	logLevel = flag.String("logLevel", "info", "Set log level.")
 )
 
 func main() {
@@ -57,18 +58,21 @@ func main() {
 
 	logrus.Info("Discord session initialized. Initializing commands.")
 
+	ha := activity.NewHActivity(session)
+
 	r := &dux.Command{
 		Name: "iku",
 		Description: `The bot for most perverted and thirsty degenerates.
 Come and use me, senpai~`,
 	}
 
-	r.AddCommands(nhentai.GetCmd(), nhentai.SearchCmd(), nhentai.RandomCmd())
+	r.AddCommands(nhentai.GetCmd(), nhentai.SearchCmd(), nhentai.RandomCmd(), ha.TodayCmd())
 	handler := dux.Handler{
 		AllowMentions: true,
 		Root:          r,
 	}
 	session.AddHandler(handler.Set())
+	go ha.Run()
 
 	defer func() {
 		sig := make(chan os.Signal, 1)

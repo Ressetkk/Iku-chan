@@ -5,3 +5,5 @@ LICENSE
 *.md
 **_test.go
 **.exe
+/deployments/
+.gitignore

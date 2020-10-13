@@ -9,7 +9,7 @@ import (
 )
 
 func GetCmd() *dux.Command {
-	return &dux.Command{
+	cmd := &dux.Command{
 		Name:  "get",
 		Short: "Use sacred numbers to get the sauce",
 		Description: `Use sacred number to get the most spicy sauce out there.
@@ -29,18 +29,21 @@ You can also get *multiple* sauces! Just add more numbers to the query.`,
 			for _, num := range parseNumbers(args) {
 				res, err := client.Get(num)
 				if err != nil {
-					e := ctx.SendTextf("NHentai API returned an error: %v", err)
+					_, e := ctx.SendTextf("NHentai API returned an error: %v", err)
 					ctx.Logger.WithError(e).Debug("context returned an error")
 					return
 				}
 				toSend := embed.Make(res)
-				err = ctx.SendEmbed(&toSend)
+				_, err = ctx.SendEmbed(&toSend)
 				if err != nil {
 					ctx.Logger.WithError(err).Error("failed send embed")
 				}
 			}
 		},
 	}
+
+	cmd.AddMiddleware(dux.NSFWOnly)
+	return cmd
 }
 
 func parseNumbers(args []string) []int {

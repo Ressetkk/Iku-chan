@@ -16,7 +16,7 @@ func Make(result *nhapi.Result) discordgo.MessageEmbed {
 		Timestamp:   time.Unix(result.UploadTimestamp, 0).Format(time.RFC3339),
 		Color:       randomRGB(),
 		Footer:      &discordgo.MessageEmbedFooter{Text: fmt.Sprintf("No. %v", result.ID)},
-		Thumbnail:   &discordgo.MessageEmbedThumbnail{URL: result.GetThumbnailUrl()},
+		Thumbnail:   &discordgo.MessageEmbedThumbnail{URL: result.GetCoverThumbnail()},
 	}
 	pages := discordgo.MessageEmbedField{
 		Name:   "Pages",
@@ -81,4 +81,13 @@ func randomRGB() int {
 	b := rand.Intn(255)
 	rgb = (r & 0xFF << 16) | (g & 0xFF << 8) | (b & 0xFF)
 	return rgb
+}
+
+func GenerateEmbeds(results []nhapi.Result) []*discordgo.MessageEmbed {
+	var embeds []*discordgo.MessageEmbed
+	for _, r := range results {
+		e := Make(&r)
+		embeds = append(embeds, &e)
+	}
+	return embeds
 }
